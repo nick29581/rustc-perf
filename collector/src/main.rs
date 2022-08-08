@@ -640,7 +640,7 @@ fn cg_diff(cgout1: &Path, cgout2: &Path, path: &Path) -> anyhow::Result<()> {
         anyhow::bail!("`cg_diff` not installed.");
     }
     let output = Command::new("cg_diff")
-        .arg("--mod-filename=s#/rustc/[^/]*/##")
+        .arg("--mod-filename=s/.*(compiler|library)/$1/")
         .arg("--mod-funcname=s/[.]llvm[.].*//")
         .arg(cgout1)
         .arg(cgout2)
