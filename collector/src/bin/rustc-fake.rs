@@ -32,15 +32,16 @@ fn main() {
     let mut args_os = env::args_os();
     let name = args_os.next().unwrap().into_string().unwrap();
 
-    let mut args = args_os.collect::<Vec<_>>();
-    let rustc = env::var_os("RUSTC_REAL").unwrap();
     let actually_rustdoc = name.ends_with("rustdoc-fake");
     let tool = if actually_rustdoc {
         let rustdoc = env::var_os("RUSTDOC_REAL").unwrap();
         rustdoc
     } else {
-        rustc
+        // rustc
+        args_os.next().unwrap()
     };
+
+    let mut args = args_os.collect::<Vec<_>>();
 
     if let Some(count) = env::var("RUSTC_THREAD_COUNT")
         .ok()

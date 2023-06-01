@@ -1,0 +1,12 @@
+diff --git a/Cargo.toml b/Cargo.toml
+index 12ee1eec..9a92219e 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -205,6 +205,7 @@ version = "0.4.26"
+ default-features = false
+
+ [features]
++default = [ "vendored-openssl" ]
+ deny-warnings = []
+ pretty-env-logger = ["pretty_env_logger"]
+ vendored-openssl = ["openssl/vendored"]

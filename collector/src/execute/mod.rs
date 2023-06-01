@@ -148,8 +148,8 @@ impl<'a> CargoProcess<'a> {
         cmd
             // Not all cargo invocations (e.g. `cargo clean`) need all of these
             // env vars set, but it doesn't hurt to have them.
-            .env("RUSTC", &*FAKE_RUSTC)
-            .env("RUSTC_REAL", &self.compiler.rustc)
+            .env("RUSTC_WRAPPER", &*FAKE_RUSTC)
+            .env("RUSTC", &self.compiler.rustc)
             // We separately pass -Cincremental to the leaf crate --
             // CARGO_INCREMENTAL is cached separately for both the leaf crate
             // and any in-tree dependencies, and we don't want that; it wastes
