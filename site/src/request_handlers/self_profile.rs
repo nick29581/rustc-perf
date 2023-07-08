@@ -526,7 +526,7 @@ pub async fn handle_self_profile(
         .benchmark(selector::Selector::One(bench_name.to_string()))
         .profile(selector::Selector::One(profile.parse().unwrap()))
         .scenario(selector::Selector::One(scenario))
-        .metric(selector::Selector::One(Metric::CpuClock));
+        .metric(selector::Selector::One(Metric::InstructionsUser));
 
     // Helper for finding an `ArtifactId` based on a commit sha
     let find_aid = |commit: &str| {

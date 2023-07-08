@@ -120,8 +120,9 @@ fn main() {
                 if wrapper == "PerfStatSelfProfile" {
                     cmd.arg(&format!(
                         "-Zself-profile={}",
-                        prof_out_dir.to_str().unwrap()
+                        prof_out_dir.to_str().unwrap(),
                     ));
+                    cmd.arg("-Zself-profile-counter=instructions:u");
                     let _ = fs::remove_dir_all(&prof_out_dir);
                     let _ = fs::create_dir_all(&prof_out_dir);
                 }

@@ -79,20 +79,19 @@
             <tbody id="artifact-body">
             </tbody>
         </table>
-        <p>'Time (%)' is the percentage of the cpu-clock time spent on this query (we do not use
-            wall-time as we want to account for parallelism).</p>
+        <p>'Instructions (%)' is the percentage of instructions executed on this query.</p>
         <p>Executions do not include cached executions.</p>
         <table>
             <thead>
                 <tr id="table-header">
                     <th data-sort-idx="1" data-default-sort-dir="1">Query/Function</th>
-                    <th data-sort-idx="10" data-default-sort-dir="-1">Time (%)</th>
-                    <th data-sort-idx="2" data-default-sort-dir="-1">Time (s)</th>
-                    <th data-sort-idx="11" data-default-sort-dir="-1" class="delta">Time delta</th>
+                    <th data-sort-idx="10" data-default-sort-dir="-1">Instructions (%)</th>
+                    <th data-sort-idx="2" data-default-sort-dir="-1">Instructions</th>
+                    <th data-sort-idx="11" data-default-sort-dir="-1" class="delta">Instructions delta</th>
                     <th data-sort-idx="5" data-default-sort-dir="-1">Executions</th>
                     <th data-sort-idx="12" data-default-sort-dir="-1" class="delta">Executions delta</th>
-                    <th class="incr" data-sort-idx="7" data-default-sort-dir="-1" title="Incremental loading time">
-                        Incremental loading (s)</th>
+                    <th class="incr" data-sort-idx="7" data-default-sort-dir="-1" title="Incremental loading instructions">
+                        Incremental loading instructions</th>
                     <th class="incr delta" data-sort-idx="13" data-default-sort-dir="-1">Incremental loading delta</th>
                 </tr>
             </thead>
