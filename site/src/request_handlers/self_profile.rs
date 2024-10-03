@@ -541,9 +541,9 @@ pub async fn handle_self_profile(
     }
     let commits = Arc::new(commits);
 
-    let mut cpu_responses = ctxt.statistic_series(query, commits.clone()).await?;
-    assert_eq!(cpu_responses.len(), 1, "all selectors are exact");
-    let mut cpu_response = cpu_responses.remove(0).series;
+    let mut instructions_responses = ctxt.statistic_series(query, commits.clone()).await?;
+    assert_eq!(instructions_responses.len(), 1, "all selectors are exact");
+    let mut instructions_response = instructions_responses.remove(0).series;
 
     let mut self_profile = get_or_download_self_profile(
         ctxt,
@@ -551,7 +551,7 @@ pub async fn handle_self_profile(
         bench_name,
         profile,
         scenario,
-        cpu_response.next().unwrap().1,
+        instructions_response.next().unwrap().1,
     )
     .await?;
     let base_self_profile = match commits.get(1) {
@@ -562,7 +562,7 @@ pub async fn handle_self_profile(
                 bench_name,
                 profile,
                 scenario,
-                cpu_response.next().unwrap().1,
+                instructions_response.next().unwrap().1,
             )
             .await?,
         ),

@@ -471,19 +471,23 @@ pub mod self_profile {
         pub artifact_sizes: Option<Vec<ArtifactSize>>,
     }
 
+    // Due to backwards compatibility, self profile event timing data is represented as durations,
+    // however since https://github.com/rust-lang/rustc-perf/pull/1647 it actually represents
+    // HW counter data (instruction counts).
     #[derive(Serialize, Deserialize, Clone, Debug)]
     pub struct QueryData {
         pub label: QueryLabel,
-        // Nanoseconds
+        // Instruction count
         pub time: u64,
+        // Instruction count
         pub self_time: u64,
         pub percent_total_time: f32,
         pub number_of_cache_misses: u32,
         pub number_of_cache_hits: u32,
         pub invocation_count: u32,
-        // Nanoseconds
+        // Instruction count
         pub blocked_time: u64,
-        // Nanoseconds
+        // Instruction count
         pub incremental_load_time: u64,
     }
 

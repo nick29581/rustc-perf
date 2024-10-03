@@ -80,6 +80,8 @@
             </tbody>
         </table>
         <p>'Instructions (%)' is the percentage of instructions executed on this query.</p>
+        <p><b>Note: self-profile measurements have been <a href="https://github.com/rust-lang/rustc-perf/pull/1647">recently switched</a>
+          from wall-time to HW counters (instruction count). If comparing with an older artifact, the timings might not be directly comparable.</b></p>
         <p>Executions do not include cached executions.</p>
         <table>
             <thead>
