@@ -45,6 +45,7 @@ inquire = "0.7.5"
 
 benchlib = { path = "benchlib" }
 database = { path = "../database" }
+ratatui = "0.28.1"
 
 [target.'cfg(windows)'.dependencies]
 miow = "0.3"

@@ -5,7 +5,12 @@ use database::{
     selector::{BenchmarkQuery, CompileBenchmarkQuery},
     ArtifactId, Connection,
 };
-use tabled::{Table, Tabled};
+use ratatui::{
+    crossterm::event::{self, Event, KeyCode},
+    prelude::*,
+    widgets::{Block, Paragraph, Row, Table, TableState},
+};
+use tabled::{Table as TTable, Tabled};
 
 static ALL_METRICS: &[Metric] = &[
     Metric::InstructionsUser,
@@ -106,9 +111,9 @@ pub async fn compare_artifacts(
         .unwrap();
 
     let tuple_pstats = resp
-        .into_iter()
+        .iter()
         .map(|resp| {
-            let points = resp.series.points.collect::<Vec<_>>();
+            let points = resp.series.points.clone().collect::<Vec<_>>();
             (points[0], points[1])
         })
         .collect::<Vec<_>>();
@@ -199,7 +204,121 @@ pub async fn compare_artifacts(
         })
         .collect::<Vec<_>>();
 
-    println!("{}", Table::new(regressions));
+    let regressions_table = TTable::new(regressions).to_string();
+
+    #[derive(Default)]
+    struct State {
+        table_state: TableState,
+    }
+
+    let mut terminal = ratatui::init();
+    let mut state = State::default();
+    state.table_state.select(Some(0));
+    loop {
+        terminal
+            .draw(|frame: &mut Frame| {
+                let layout = Layout::default()
+                    .direction(Direction::Vertical)
+                    .margin(1)
+                    .constraints(
+                        [
+                            Constraint::Min(regressions_table.lines().count() as u16),
+                            Constraint::Percentage(100),
+                        ]
+                        .as_ref(),
+                    )
+                    .split(frame.area());
+                frame.render_widget(
+                    Paragraph::new(Text::raw(regressions_table.clone()))
+                        .block(Block::bordered().title("Regression")),
+                    layout[0],
+                );
+                let header = Row::new(vec![
+                    "Benchmark",
+                    "Profile",
+                    "Scenario",
+                    "Backend",
+                    "Change",
+                ]);
+                let widths = [30, 10, 40, 20, 20];
+                let mut rows = vec![];
+                for x in resp.iter() {
+                    let points = x.series.points.clone().collect::<Vec<_>>();
+                    let change = match (points[0], points[1]) {
+                        (Some(base), Some(modified)) => {
+                            if base == 0.0 {
+                                None
+                            } else {
+                                Some((modified - base) / base * 100.0)
+                            }
+                        }
+                        (_, _) => None,
+                    };
+                    let profile = x.test_case.profile.to_string();
+                    let scenario = x.test_case.scenario.to_string();
+                    let backend = x.test_case.backend.to_string();
+                    rows.push(vec![
+                        x.test_case.benchmark.to_string(),
+                        profile,
+                        scenario,
+                        backend,
+                        change
+                            .map(|c| format!("{:+.2}%", c))
+                            .unwrap_or("-".to_string()),
+                    ]);
+                }
+
+                rows.sort_by(|a, b| {
+                    let a = a[4].trim_end_matches("%").parse::<f64>().unwrap_or(0.0);
+                    let b = b[4].trim_end_matches("%").parse::<f64>().unwrap_or(0.0);
+                    b.abs().partial_cmp(&a.abs()).unwrap()
+                });
+
+                frame.render_stateful_widget(
+                    Table::new(
+                        rows.into_iter()
+                            .map(|v| {
+                                let change =
+                                    v[4].trim_end_matches("%").parse::<f64>().unwrap_or(0.0);
+                                let mut cells =
+                                    v.into_iter().map(|c| Span::from(c)).collect::<Vec<_>>();
+                                if change < 0.0 {
+                                    cells[4] = cells[4].clone().green();
+                                } else {
+                                    cells[4] = cells[4].clone().red();
+                                }
+
+                                Row::new(cells)
+                            })
+                            .collect::<Vec<Row>>(),
+                        widths,
+                    )
+                    .header(header)
+                    .block(Block::bordered().title("Benchmarks"))
+                    .column_spacing(1)
+                    .highlight_symbol("> ")
+                    .highlight_style(Style::new().bg(Color::DarkGray).fg(Color::Black)),
+                    layout[1],
+                    &mut state.table_state,
+                );
+            })
+            .expect("failed to draw frame");
+
+        match event::read()? {
+            Event::Key(key_event) => match key_event.code {
+                KeyCode::Char('q') | KeyCode::Esc => break,
+                KeyCode::Down => {
+                    state.table_state.select_next();
+                }
+                KeyCode::Up => {
+                    state.table_state.select_previous();
+                }
+                _ => {}
+            },
+            _ => {}
+        }
+    }
+    ratatui::restore();
 
     Ok(())
 }
