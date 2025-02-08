@@ -318,7 +318,7 @@ pub(crate) async fn get_or_download_self_profile(
 }
 
 fn get_self_profile_data(
-    cpu_clock: Option<f64>,
+    total_instructions: Option<f64>,
     profile: &analyzeme::AnalysisResults,
 ) -> ServerResult<self_profile::SelfProfile> {
     let total_self_time: Duration = profile.query_data.iter().map(|qd| qd.self_time).sum();
@@ -345,7 +345,7 @@ fn get_self_profile_data(
         time: profile.total_time.as_nanos() as u64,
         self_time: total_self_time.as_nanos() as u64,
         // TODO: check against wall-time from perf stats
-        percent_total_time: cpu_clock
+        percent_total_time: total_instructions
             .map(|w| ((total_self_time.as_secs_f64() / w) * 100.0) as f32)
             // sentinel "we couldn't compute this time"
             .unwrap_or(-100.0),
