@@ -20,19 +20,14 @@ pub async fn handle_github(
 }
 
 async fn handle_push(ctxt: Arc<SiteCtxt>, push: github::Push) -> ServerResult<github::Response> {
-    let ci_client = client::Client::from_ctxt(
-        &ctxt,
-        "https://api.github.com/repos/rust-lang-ci/rust".to_owned(),
-    );
-    let main_repo_client = client::Client::from_ctxt(&ctxt, RUST_REPO_GITHUB_API_URL.to_owned());
+    let gh_client = client::Client::from_ctxt(&ctxt, RUST_REPO_GITHUB_API_URL.to_owned());
     if push.r#ref != "refs/heads/master" || push.sender.login != "bors" {
         return Ok(github::Response);
     }
-    let rollup_pr_number =
-        match rollup_pr_number(&main_repo_client, &push.head_commit.message).await? {
-            Some(pr) => pr,
-            None => return Ok(github::Response),
-        };
+    let rollup_pr_number = match rollup_pr_number(&gh_client, &push.head_commit.message).await? {
+        Some(pr) => pr,
+        None => return Ok(github::Response),
+    };
 
     let previous_master = push.before;
     let commits = push.commits;
@@ -44,14 +39,8 @@ async fn handle_push(ctxt: Arc<SiteCtxt>, push: github::Push) -> ServerResult<gi
             .iter()
             .rev()
             .filter(|c| c.message.starts_with("Rollup merge of #"));
-        let result = unroll_rollup(
-            ci_client,
-            main_repo_client,
-            rollup_merges,
-            &previous_master,
-            rollup_pr_number,
-        )
-        .await;
+        let result =
+            unroll_rollup(gh_client, rollup_merges, &previous_master, rollup_pr_number).await;
         log::info!("Processing of rollup merge finished: {:#?}", result);
     });
     Ok(github::Response)
@@ -62,17 +51,12 @@ async fn handle_issue(
     issue: github::Issue,
     comment: github::Comment,
 ) -> ServerResult<github::Response> {
-    let main_client = client::Client::from_ctxt(&ctxt, RUST_REPO_GITHUB_API_URL.to_owned());
-    let ci_client = client::Client::from_ctxt(
-        &ctxt,
-        "https://api.github.com/repos/rust-lang-ci/rust".to_owned(),
-    );
+    let gh_client = client::Client::from_ctxt(&ctxt, RUST_REPO_GITHUB_API_URL.to_owned());
     if comment.body.contains(" homu: ") {
         if let Some(sha) = parse_homu_comment(&comment.body).await {
             enqueue_shas(
                 &ctxt,
-                &main_client,
-                &ci_client,
+                &gh_client,
                 issue.number,
                 std::iter::once(sha.as_str()),
             )
@@ -82,7 +66,7 @@ async fn handle_issue(
     }
 
     if comment.body.contains("@rust-timer ") {
-        return handle_rust_timer(ctxt, &main_client, &ci_client, comment, issue).await;
+        return handle_rust_timer(ctxt, &gh_client, comment, issue).await;
     }
 
     Ok(github::Response)
@@ -91,7 +75,6 @@ async fn handle_issue(
 async fn handle_rust_timer(
     ctxt: Arc<SiteCtxt>,
     main_client: &client::Client,
-    ci_client: &client::Client,
     comment: github::Comment,
     issue: github::Issue,
 ) -> ServerResult<github::Response> {
@@ -168,7 +151,6 @@ async fn handle_rust_timer(
     enqueue_shas(
         &ctxt,
         main_client,
-        ci_client,
         issue.number,
         valid_build_cmds.iter().map(|c| c.sha),
     )

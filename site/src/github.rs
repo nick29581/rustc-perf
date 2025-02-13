@@ -26,13 +26,12 @@ use database::Connection;
 
 /// Enqueues try build artifacts and posts a message about them on the original rollup PR
 pub async fn unroll_rollup(
-    ci_client: client::Client,
-    main_repo_client: client::Client,
+    gh_client: client::Client,
     rollup_merges: impl Iterator<Item = &Commit>,
     previous_master: &str,
     rollup_pr_number: u32,
 ) -> Result<(), String> {
-    let commit_link = |sha: &str| format!("https://github.com/rust-lang-ci/rust/commit/{sha}");
+    let commit_link = |sha: &str| format!("https://github.com/rust-lang/rust/commit/{sha}");
 
     let format_commit = |s: &str, truncate: bool| {
         let display = truncate.then(|| s.split_at(10).0).unwrap_or(s);
@@ -42,7 +41,7 @@ pub async fn unroll_rollup(
     // Sort rolled up commits by their PR number in ascending order, so that they have the
     // same ordering as in the rollup PR description.
     let mut unrolled_builds: Vec<UnrolledCommit> =
-        enqueue_unrolled_try_builds(ci_client, rollup_merges, previous_master).await?;
+        enqueue_unrolled_try_builds(&gh_client, rollup_merges, previous_master).await?;
     // The number should really be an integer, but if not, we will just sort the "non-integer" PRs
     // first.
     unrolled_builds.sort_by_cached_key(|commit| commit.original_pr_number.parse::<u64>().ok());
@@ -93,14 +92,14 @@ pub async fn unroll_rollup(
         {mapping}\n\n*previous master*: {previous_master}\n\nIn the case of a perf regression, \
         run the following command for each PR you suspect might be the cause: `@rust-timer build $SHA`\n\
         {COMMENT_MARK_ROLLUP}");
-    main_repo_client.post_comment(rollup_pr_number, msg).await;
+    gh_client.post_comment(rollup_pr_number, msg).await;
     Ok(())
 }
 
 /// Enqueues try builds on the try-perf branch for every rollup merge in `rollup_merges`.
 /// Returns a mapping between the rollup merge commit and the try build sha.
 async fn enqueue_unrolled_try_builds<'a>(
-    client: client::Client,
+    client: &client::Client,
     rollup_merges: impl Iterator<Item = &'a Commit>,
     previous_master: &str,
 ) -> Result<Vec<UnrolledCommit<'a>>, String> {
@@ -236,14 +235,13 @@ pub async fn rollup_pr_number(
 
 pub async fn enqueue_shas(
     ctxt: &SiteCtxt,
-    main_client: &client::Client,
-    ci_client: &client::Client,
+    gh_client: &client::Client,
     pr_number: u32,
     commits: impl Iterator<Item = &str>,
 ) -> Result<(), String> {
     let mut msg = String::new();
     for commit in commits {
-        let mut commit_response = ci_client
+        let mut commit_response = gh_client
             .get_commit(commit)
             .await
             .map_err(|e| e.to_string())?;
@@ -299,7 +297,7 @@ It will probably take at least ~{:.1} hours until the benchmark run finishes."#,
 
     if !msg.is_empty() {
         msg.push_str(&format!("\n{COMMENT_MARK_TEMPORARY}"));
-        main_client.post_comment(pr_number, msg).await;
+        gh_client.post_comment(pr_number, msg).await;
     }
 
     Ok(())
