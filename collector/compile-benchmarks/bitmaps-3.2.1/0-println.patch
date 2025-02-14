@@ -1,0 +1,12 @@
+diff --git a/src/bitmap.rs b/src/bitmap.rs
+index ba5d1b18..9542a890 100644
+--- a/src/bitmap.rs
++++ b/src/bitmap.rs
+@@ -27,6 +27,7 @@ where
+     BitsImpl<{ SIZE }>: Bits,
+ {
+     fn clone(&self) -> Self {
++        println!("testing");
+         Bitmap::from_value(self.data)
+     }
+ }

@@ -23,6 +23,11 @@ SPDX-License-Identifier = "MPL-2.0"
 SPDX-FileCopyrightText = "Bodil Stokke"
 
 [[annotations]]
+path = "bitmaps-3.2.1/**"
+SPDX-License-Identifier = "MPL-2.0"
+SPDX-FileCopyrightText = "Bodil Stokke"
+
+[[annotations]]
 path = "cargo-0.60.0/**"
 SPDX-FileCopyrightText = "The Rust Project Developers (see https://thanks.rust-lang.org)"
 SPDX-License-Identifier = "MIT OR Apache-2.0"

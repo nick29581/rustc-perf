@@ -18,6 +18,9 @@ They mostly consist of real-world crates.
 - **bitmaps-3.1.0**: A bitmaps implementation. Stresses the compiler's trait
   handling by implementing a trait `Bits` for the type `BitsImpl<N>` for every
   `N` value from 1 to 1024.
+- **bitmaps-3.2.1**: A bitmaps implementation. Stresses the compiler's trait
+  handling by implementing a trait `Bits` for the type `BitsImpl<N>` for every
+  `N` value from 1 to 1024.
 - **cargo-0.60.0**: The Rust package manager. A large program, and an important
   part of the Rust ecosystem.
 - **clap-3.1.6**: A command line argument parser library. A crate used by many
