@@ -228,9 +228,9 @@ fn main() {
                 let has_perf = cmd.output().is_ok();
                 assert!(has_perf);
                 cmd.arg("record")
-                    .arg("--call-graph=dwarf")
+                    .arg("--call-graph=fp")
                     .arg("--output=perf")
-                    .arg("--freq=299")
+                    .arg("--freq=max")
                     .arg("--event=cycles:u,instructions:u")
                     .arg(&tool)
                     .args(&args);
